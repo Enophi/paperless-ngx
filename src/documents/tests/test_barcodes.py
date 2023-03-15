@@ -1071,7 +1071,7 @@ class TestAsnBarcodes(DirectoriesMixin, TestCase):
         )
 
         dst = os.path.join(
-            "/home/david/Documents/PaperlessScratch",
+            settings.SCRATCH_DIR,
             "barcode-39-asn-123.pdf",
         )
 
