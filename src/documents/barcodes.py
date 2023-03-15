@@ -10,6 +10,11 @@ from typing import List
 from typing import Optional
 
 import magic
+from dbr import BarcodeReader
+from dbr import BarcodeReaderError
+from dbr import EnumBarcodeFormat
+from dbr import EnumBarcodeFormat_2
+from dbr import EnumErrorCode
 from django.conf import settings
 from pdf2image import convert_from_path
 from pdf2image.exceptions import PDFPageCountError
@@ -20,6 +25,24 @@ from PIL import ImageSequence
 from pyzbar import pyzbar
 
 logger = logging.getLogger("paperless.barcodes")
+
+dbr_error = BarcodeReader.init_license(settings.CONSUMER_BARCODE_DYNAMSOFT_LICENCE)
+if dbr_error[0] != EnumErrorCode.DBR_OK:
+    logger.warning(f"Dynamsoft License error: {dbr_error[1]}")
+
+dbr_reader = BarcodeReader()
+dbr_settings = dbr_reader.get_runtime_settings()
+# Activate all barcodes from Group 1
+# (https://www.dynamsoft.com/barcode-reader/docs/core/parameters/reference/barcode-format-ids.html)
+dbr_settings.barcode_format_ids = EnumBarcodeFormat.BF_ALL
+# Disable all barcodes from Group 2
+# (https://www.dynamsoft.com/barcode-reader/docs/core/parameters/reference/barcode-format-ids-2.html)
+dbr_settings.barcode_format_ids_2 = EnumBarcodeFormat_2.BF2_NULL
+# Search for the minimum count barcodes
+dbr_settings.expected_barcodes_count = 99
+# Disable all Deblur fn to increase accuracy
+dbr_settings.deblur_modes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+dbr_reader.update_runtime_settings(dbr_settings)
 
 
 class BarcodeImageFormatError(Exception):
@@ -169,6 +192,25 @@ def scan_file_for_barcodes(
                     )
         return detected_barcodes
 
+    def _extract_barcode(pdf_filepath: str) -> List[Barcode]:
+        detected_barcodes = []
+        results = dbr_reader.decode_file(pdf_filepath)
+        if results is not None:
+            for barcode in results:
+                logger.debug(
+                    "Barcode of type {format} found: {value}".format(
+                        format=barcode.barcode_format_string,
+                        value=barcode.barcode_text,
+                    ),
+                )
+                detected_barcodes.append(
+                    Barcode(
+                        barcode.localization_result.page_number,
+                        barcode.barcode_text,
+                    ),
+                )
+        return detected_barcodes
+
     pdf_filepath = None
     mime_type = get_file_mime_type(filepath)
     barcodes = []
@@ -181,10 +223,17 @@ def scan_file_for_barcodes(
         # Always try pikepdf first, it's usually fine, faster and
         # uses less memory
         try:
-            barcodes = _pdf2image_barcode_scan(pdf_filepath)
+
+            if settings.CONSUMER_BARCODE_DYNAMSOFT_LICENCE:
+                logger.debug("Using Dynamsoft Barcode Library")
+                barcodes = _extract_barcode(pdf_filepath)
+            else:
+                logger.debug("Using Pyzbar Library")
+                barcodes = _pdf2image_barcode_scan(pdf_filepath)
+
         # Password protected files can't be checked
         # This is the exception raised for those
-        except PDFPageCountError as e:
+        except (PDFPageCountError, BarcodeReaderError) as e:
             logger.warning(
                 f"File is likely password protected, not checking for barcodes: {e}",
             )

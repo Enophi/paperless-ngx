@@ -64,7 +64,7 @@ cryptography = "==38.0.1"
 # Locked version until https://github.com/django/channels_redis/issues/332
 # is resolved
 channels-redis = "==3.4.1"
-
+dbr = "*"
 
 [dev-packages]
 coveralls = "*"
