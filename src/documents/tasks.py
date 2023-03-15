@@ -112,7 +112,7 @@ def consume_file(
 
     # read all barcodes in the current document
     if settings.CONSUMER_ENABLE_BARCODES or settings.CONSUMER_ENABLE_ASN_BARCODE:
-        doc_barcode_info = barcodes.scan_file_for_barcodes(path)
+        doc_barcode_info = barcodes.scan_file_for_barcodes(str(path))
 
         # split document by separator pages, if enabled
         if settings.CONSUMER_ENABLE_BARCODES:
