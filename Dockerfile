@@ -39,11 +39,11 @@ RUN set -eux \
 #  - Don't leave anything extra in here
 FROM python:3.9-slim-bullseye as main-app
 
-LABEL org.opencontainers.image.authors="paperless-ngx team <hello@paperless-ngx.com>"
-LABEL org.opencontainers.image.documentation="https://docs.paperless-ngx.com/"
-LABEL org.opencontainers.image.source="https://github.com/paperless-ngx/paperless-ngx"
-LABEL org.opencontainers.image.url="https://github.com/paperless-ngx/paperless-ngx"
-LABEL org.opencontainers.image.licenses="GPL-3.0-only"
+LABEL ch.enophi.image.authors="David Cruchon <david@enophi.ch>"
+LABEL ch.enophi.image.documentation="https://docs.paperless-ngx.com/"
+LABEL ch.enophi.image.source="https://github.com/Enophi/paperless-ngx"
+LABEL ch.enophi.image.url="https://github.com/Enophi/paperless-ngx"
+LABEL ch.enophi.image.licenses="GPL-3.0-only"
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Buildx provided, must be defined to use though

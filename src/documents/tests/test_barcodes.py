@@ -2,6 +2,7 @@ import os
 import shutil
 from unittest import mock
 
+import pytest
 from django.conf import settings
 from django.test import override_settings
 from django.test import TestCase
@@ -1069,7 +1070,11 @@ class TestAsnBarcodes(DirectoriesMixin, TestCase):
             "barcode-39-asn-123.pdf",
         )
 
-        dst = os.path.join(settings.SCRATCH_DIR, "barcode-39-asn-123.pdf")
+        dst = os.path.join(
+            "/home/david/Documents/PaperlessScratch",
+            "barcode-39-asn-123.pdf",
+        )
+
         shutil.copy(test_file, dst)
 
         with mock.patch("documents.consumer.Consumer.try_consume_file") as mocked_call:
@@ -1150,3 +1155,42 @@ class TestAsnBarcodes(DirectoriesMixin, TestCase):
                 tasks.consume_file,
                 dst,
             )
+
+
+class TestDynamsoftBarcodes(DirectoriesMixin, TestCase):
+
+    SAMPLE_DIR = os.path.join(
+        os.path.dirname(__file__),
+        "samples",
+    )
+
+    BARCODE_SAMPLE_DIR = os.path.join(SAMPLE_DIR, "barcodes")
+
+    @pytest.mark.skipif(
+        "PAPERLESS_CONSUMER_BARCODE_DYNAMSOFT_LICENCE" not in os.environ
+        or not len(os.environ["PAPERLESS_CONSUMER_BARCODE_DYNAMSOFT_LICENCE"]),
+        reason="No Dynamsoft licence",
+    )
+    def test_datamatrix_format(self):
+        """
+        GIVEN:
+            - PDF containing two DataMatrix barcodes
+        WHEN:
+            - File is scanned for barcodes
+        THEN:
+            - The barcodes are located
+        """
+
+        test_file = os.path.join(
+            self.BARCODE_SAMPLE_DIR,
+            "barcode-dm-multiple.pdf",
+        )
+
+        doc_barcode_info = barcodes.scan_file_for_barcodes(
+            test_file,
+        )
+
+        asn = barcodes.get_asn_from_barcodes(doc_barcode_info.barcodes)
+
+        self.assertEqual(doc_barcode_info.pdf_path, test_file)
+        self.assertEqual(asn, 1)
