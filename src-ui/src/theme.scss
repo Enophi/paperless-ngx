@@ -4,8 +4,14 @@
   --pngx-primary-lightness: 21%;
 }
 
+@mixin paperless-blue {
+  // base color e.g. #17541f = hsl(128, 57%, 21%)
+  --pngx-primary: 204, 64%;
+  --pngx-primary-lightness: 44%;
+}
+
 body {
-  @include paperless-green;
+  @include paperless-blue;
   --pngx-primary-text-contrast: var(--bs-light);
 
   --bs-primary: hsl(var(--pngx-primary), var(--pngx-primary-lightness));
@@ -51,6 +57,10 @@ $form-check-radio-checked-bg-image-dark: url("data:image/svg+xml,<svg xmlns='htt
 
 // Dark mode
 @mixin paperless-green-dark-mode {
+  --pngx-primary-lightness: 31%;
+}
+
+@mixin paperless-blue-dark-mode {
   --pngx-primary-lightness: 31%;
 }
 
@@ -215,11 +225,11 @@ $form-check-radio-checked-bg-image-dark: url("data:image/svg+xml,<svg xmlns='htt
 body.color-scheme-dark {
   // no custom theme color
   &:not(.primary-light):not(.primary-dark) {
-    @include paperless-green-dark-mode;
+    @include paperless-blue-dark-mode;
 
     .navbar.bg-primary {
       // navbar is og green in dark mode
-      @include paperless-green;
+      @include paperless-blue;
     }
   }
 
@@ -230,11 +240,11 @@ body.color-scheme-dark {
   body.color-scheme-system {
     // no custom theme color
     &:not(.primary-light):not(.primary-dark) {
-      @include paperless-green-dark-mode;
+      @include paperless-blue-dark-mode;
 
       .navbar.bg-primary {
         // navbar is og green in dark mode
-        @include paperless-green;
+        @include paperless-blue;
       }
     }
 
